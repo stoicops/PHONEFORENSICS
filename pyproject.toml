@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phoneforensics"
+version = "0.1.0"
+description = "A friendly point-and-click front end for the Mobile Verification Toolkit (MVT)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["mvt", "flask>=2.3"]
+
+[project.scripts]
+phoneforensics = "phoneforensics.app:main"
+
+[tool.setuptools.packages.find]
+include = ["phoneforensics*"]
+
+[tool.setuptools.package-data]
+phoneforensics = ["static/*"]

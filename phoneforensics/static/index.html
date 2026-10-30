@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhoneForensics</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="bg-glow"></div>
+<aside class="sidebar">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" class="logo"><path d="M16 2 4 7v8c0 7.5 5 13.5 12 15 7-1.5 12-7.5 12-15V7z" fill="url(#g)"/><rect x="12" y="9" width="8" height="14" rx="2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="20" r="1" fill="#fff"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs></svg>
+    <div><b>PhoneForensics</b><small>powered by MVT</small></div>
+  </div>
+  <nav>
+    <a href="#/" data-nav="home">🏠 <span>Home</span></a>
+    <a href="#/scan" data-nav="scan">🔍 <span>New check</span></a>
+    <a href="#/cases" data-nav="cases">🗂️ <span>Past checks</span></a>
+    <a href="#/help" data-nav="help">💡 <span>Guide</span></a>
+  </nav>
+  <div class="side-foot" id="sideStatus">Checking setup…</div>
+</aside>
+<main id="view"></main>
+
+<div class="modal" id="browser" hidden>
+  <div class="modal-card">
+    <header><h3>Choose a location</h3><button class="icon-btn" data-close>✕</button></header>
+    <div class="crumb"><button class="btn ghost sm" id="upBtn">⬆ Up</button><input id="pathInput" spellcheck="false"><button class="btn ghost sm" id="goBtn">Go</button></div>
+    <div class="file-list" id="fileList"></div>
+    <footer><span id="browserHint" class="muted"></span><button class="btn primary" id="pickBtn">Use this folder</button></footer>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
