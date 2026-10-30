@@ -67,7 +67,10 @@ def test_executable_prefers_the_script_next_to_this_python(tmp_path: Path, monke
     script.chmod(0o755)
     monkeypatch.setattr(mvt, "_script_dirs", lambda: [scripts])
     monkeypatch.setenv("PATH", "")
-    assert mvt.executable("mvt-ios") == [str(script)]
+    found = mvt.executable("mvt-ios")
+    assert len(found) == 1
+    # Windows may report the extension as ".EXE"; its file names are case-insensitive.
+    assert Path(found[0]).name.lower() == name and Path(found[0]).parent == scripts
 
 
 def test_executable_fallback_runs_mvt_without_any_scripts(monkeypatch: pytest.MonkeyPatch) -> None:
