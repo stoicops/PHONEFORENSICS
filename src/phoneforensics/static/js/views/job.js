@@ -1,6 +1,6 @@
 // Live progress for a running check, list download or app update.
 
-import { api } from "../api.js";
+import { api, errorMessage } from "../api.js";
 import { find, icon, maybe, toast } from "../dom.js";
 import { areaOf, moduleFromLogLine, stageText } from "../format.js";
 import { html, setHtml } from "../html.js";
@@ -127,13 +127,11 @@ export async function render(view, jobId) {
     const done = /** @type {Job} */ (JSON.parse(String(message.data)));
     if (done.kind === "scan" && done.case_dir) {
       location.hash = `#/case/${encodeURIComponent(done.case_dir.split(/[\\/]/).pop() ?? "")}`;
-    } else if (done.kind === "iocs") {
-      toast(
-        done.status === "done"
-          ? "Spyware lists updated."
-          : "Could not update the lists. Check your internet connection.",
-      );
+    } else if (done.kind === "iocs" && done.status === "done") {
+      toast("Spyware lists updated.");
       location.hash = "#/";
+    } else if (done.kind === "iocs") {
+      showDownloadFailure(view, done);
     } else {
       finishUpdate(view, done, () => {
         current = stages.length;
@@ -167,4 +165,31 @@ function finishUpdate(view, done, markAllDone) {
     html`<button class="pf-btn pf-btn--primary pf-btn--lg" type="button" id="restartNow">Restart now</button>`,
   );
   find("#restartNow", HTMLButtonElement, actions).addEventListener("click", () => void restartApp(view));
+}
+
+/**
+ * Stay on this screen and explain why the download failed, instead of hiding it behind a toast.
+ * @param {HTMLElement} view @param {Job} done
+ */
+function showDownloadFailure(view, done) {
+  maybe(".pf-scan__ring", SVGElement, view)?.remove();
+  maybe("#stopJob", HTMLButtonElement, view)?.remove();
+  find("#phase", HTMLElement, view).textContent = "The spyware lists could not be downloaded";
+  find("#jobIntro", HTMLElement, view).textContent = done.error ?? "Something went wrong.";
+  setHtml(find("#stages", HTMLElement, view), html``);
+  const details = maybe(".pf-details", HTMLDetailsElement, view);
+  if (details) details.open = true;
+  const actions = find("#jobActions", HTMLElement, view);
+  setHtml(
+    actions,
+    html`<button class="pf-btn pf-btn--primary" type="button" id="retryDownload">${icon("refresh")}Try again</button>
+    <a class="pf-btn pf-btn--quiet" href="#/">Back to Home</a>`,
+  );
+  find("#retryDownload", HTMLButtonElement, actions).addEventListener("click", async () => {
+    try {
+      location.hash = `#/job/${(await api.updateIndicators()).id}`;
+    } catch (error) {
+      toast(errorMessage(error));
+    }
+  });
 }

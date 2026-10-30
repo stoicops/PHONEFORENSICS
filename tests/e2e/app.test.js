@@ -253,3 +253,51 @@ describe("behaviour", () => {
     await close();
   });
 });
+
+describe("failed list download", () => {
+  const FAIL_PORT = PORT + 1;
+  /** @type {import("node:child_process").ChildProcess} */
+  let failing;
+
+  before(async () => {
+    // A proxy on a closed port makes every MVT download fail, like a blocked network would.
+    const blocked = "http://127.0.0.1:9";
+    failing = spawn(
+      PYTHON,
+      ["-m", "phoneforensics", "--port", String(FAIL_PORT), "--no-browser", "--log-level", "WARNING"],
+      {
+        env: {
+          ...process.env,
+          PHONEFORENSICS_HOME: home,
+          HTTPS_PROXY: blocked,
+          https_proxy: blocked,
+          NO_PROXY: "",
+          no_proxy: "",
+        },
+        stdio: "inherit",
+      },
+    );
+    for (let i = 0; i < 100; i++) {
+      try {
+        if ((await fetch(`http://127.0.0.1:${FAIL_PORT}/api/status`)).ok) return;
+      } catch {
+        // not up yet
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  });
+
+  after(() => failing?.kill());
+
+  test("explains the problem, shows the details and offers to try again", async () => {
+    const { page, close } = await openPage();
+    await page.goto(`http://127.0.0.1:${FAIL_PORT}/`);
+    await page.getByRole("button", { name: /Update lists|Download lists/ }).click();
+    await page.getByRole("heading", { name: "The spyware lists could not be downloaded" }).waitFor({ timeout: 90_000 });
+    assert.match(await page.locator("#jobIntro").innerText(), /proxy|internet|secure connection|took too long/i);
+    assert.equal(await page.locator(".pf-details").getAttribute("open"), "");
+    assert.ok(await page.getByRole("button", { name: "Try again" }).isVisible());
+    assert.ok(page.url().includes("#/job/"), "should stay on the progress screen");
+    await close();
+  });
+});

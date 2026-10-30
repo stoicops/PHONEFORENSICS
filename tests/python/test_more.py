@@ -8,14 +8,72 @@ import pytest
 from conftest import post, start_blocking_job, wait_for
 from flask.testing import FlaskClient
 
-from phoneforensics import logs, updates
-from phoneforensics.jobs import Job, JobRegistry
+from phoneforensics import logs, mvt, updates
+from phoneforensics.jobs import Job, JobRegistry, run_command
 
 
-def test_indicator_download_job(client: FlaskClient, registry: JobRegistry, fake_mvt: Path) -> None:
+def test_indicator_download_job(
+    client: FlaskClient, registry: JobRegistry, fake_mvt: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    times = iter([100.0, 200.0])  # a list was written during the run
+    monkeypatch.setattr(mvt, "newest_indicator_time", lambda folder=None: next(times))
     job = post(client, "/api/iocs/update").get_json()
     assert job["kind"] == "iocs"
     assert wait_for(registry, job["id"]).status == "done"
+
+
+def test_download_that_saves_no_lists_is_a_failure(
+    client: FlaskClient, registry: JobRegistry, fake_mvt: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # MVT exits 0 even when every file failed to download; older lists may already exist.
+    monkeypatch.setattr(mvt, "newest_indicator_time", lambda folder=None: 100.0)
+    done = wait_for(registry, post(client, "/api/iocs/update").get_json()["id"])
+    assert done.status == "failed"
+    assert done.error == mvt.DOWNLOAD_FAILED_DEFAULT
+
+
+def test_download_failure_is_explained(
+    client: FlaskClient, registry: JobRegistry, fake_mvt: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("FAKE_MVT_MODE", "crash")
+    done = wait_for(registry, post(client, "/api/iocs/update").get_json()["id"])
+    assert done.status == "failed"
+    assert done.error
+
+
+@pytest.mark.parametrize(
+    ("log_line", "expected"),
+    [
+        (
+            "requests.exceptions.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed",
+            "secure connection",
+        ),
+        ("ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 407 Proxy'))", "proxy"),
+        ("NameResolutionError: Failed to resolve 'raw.githubusercontent.com'", "could not reach the internet"),
+        ("[Errno 11001] getaddrinfo failed", "could not reach the internet"),
+        ("ReadTimeout: HTTPSConnectionPool(...): Read timed out. (read timeout=15)", "took too long"),
+        ("No module named mvt.ios", "not installed correctly"),
+        ("UnicodeEncodeError: 'charmap' codec can't encode character", "could not write its output"),
+        ("something unexpected", "technical details"),
+    ],
+)
+def test_explain_download_failure(log_line: str, expected: str) -> None:
+    assert expected in mvt.explain_download_failure(["$ mvt-ios download-iocs", log_line])
+
+
+def test_newest_indicator_time(tmp_path: Path) -> None:
+    assert mvt.newest_indicator_time(tmp_path) == 0.0
+    (tmp_path / "a.stix2").write_text("{}")
+    assert mvt.newest_indicator_time(tmp_path) > 0
+
+
+def test_child_processes_use_utf8_output() -> None:
+    import sys
+
+    job = Job("iocs", "t", None)
+    code = run_command(job, [sys.executable, "-c", "import sys; print(sys.stdout.encoding.lower()); print('✓ ok')"])
+    assert code == 0
+    assert job.lines[1:] == ["utf-8", "✓ ok"]
 
 
 def test_restart_refused_while_something_runs(client: FlaskClient, registry: JobRegistry) -> None:

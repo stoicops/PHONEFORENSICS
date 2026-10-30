@@ -17,6 +17,9 @@ log = logging.getLogger(__name__)
 JobKind = Literal["scan", "iocs", "update"]
 JobStatus = Literal["running", "done", "failed"]
 MASK = "********"
+# Unbuffered, plain-text UTF-8 output from child processes. Without the UTF-8 settings, Windows
+# encodes piped output with the old ANSI code page, which can crash MVT's console output.
+CHILD_ENV = {"PYTHONUNBUFFERED": "1", "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1", "TERM": "dumb", "COLUMNS": "160"}
 
 
 class Job:
@@ -138,8 +141,9 @@ def run_command(
             stderr=subprocess.STDOUT,
             stdin=subprocess.DEVNULL,
             text=True,
+            encoding="utf-8",
             errors="replace",
-            env={**os.environ, "PYTHONUNBUFFERED": "1", "TERM": "dumb", "COLUMNS": "160", **(env or {})},
+            env={**os.environ, **CHILD_ENV, **(env or {})},
         )
     except OSError as exc:
         job.log(f"Could not start {cmd[0]}: {exc}")

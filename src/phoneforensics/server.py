@@ -187,9 +187,15 @@ def create_app(settings: Settings, registry: JobRegistry | None = None, restart_
     @app.post("/api/iocs/update")
     def update_indicators() -> Response:
         def worker(job: Job) -> None:
+            before = mvt.newest_indicator_time()
             code = run_command(job, mvt.download_indicators_command())
             job.summary = dict(mvt.indicator_status())
-            job.finish("done" if code == 0 else "failed", None if code == 0 else "Could not download the lists.")
+            # MVT exits successfully even when every individual download failed, so also check
+            # that this run actually wrote at least one list.
+            if code == 0 and mvt.newest_indicator_time() > before:
+                job.finish("done")
+            else:
+                job.finish("failed", mvt.explain_download_failure(job.lines))
 
         return jsonify(jobs.start("iocs", "Updating spyware lists", None, worker).to_dict())
 

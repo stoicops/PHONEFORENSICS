@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 from dataclasses import dataclass
@@ -63,6 +64,13 @@ class IndicatorStatus(TypedDict):
     updated: str | None
 
 
+def newest_indicator_time(folder: Path | None = None) -> float:
+    """Modification time of the most recently written indicator file (0 if there are none)."""
+    folder = folder if folder is not None else indicators_dir()
+    files = folder.glob("*.stix2") if folder and folder.is_dir() else []
+    return max((f.stat().st_mtime for f in files), default=0.0)
+
+
 def indicator_status(folder: Path | None = None) -> IndicatorStatus:
     folder = folder if folder is not None else indicators_dir()
     files = sorted(folder.glob("*.stix2")) if folder and folder.is_dir() else []
@@ -71,6 +79,53 @@ def indicator_status(folder: Path | None = None) -> IndicatorStatus:
         "count": len(files),
         "updated": datetime.fromtimestamp(newest).isoformat(timespec="minutes") if newest else None,
     }
+
+
+# Plain-language explanations for common reasons an MVT download fails, matched against its output.
+DOWNLOAD_PROBLEMS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (
+        re.compile(r"CERTIFICATE_VERIFY_FAILED|SSLError|SSL: |certificate verify", re.IGNORECASE),
+        "The network blocked a secure connection. This often happens on workplace or school networks, "
+        "or with antivirus software that inspects web traffic. Try another network, such as home Wi-Fi "
+        "or a phone hotspot.",
+    ),
+    (
+        re.compile(r"ProxyError|407 Proxy|Tunnel connection failed", re.IGNORECASE),
+        "A proxy server on this network refused the connection. Try another network, such as home Wi-Fi "
+        "or a phone hotspot.",
+    ),
+    (
+        re.compile(
+            r"NameResolutionError|getaddrinfo failed|Failed to resolve|Name or service not known|"
+            r"nodename nor servname|Temporary failure in name resolution|Network is unreachable",
+            re.IGNORECASE,
+        ),
+        "This computer could not reach the internet. Check that it is online, then try again.",
+    ),
+    (
+        re.compile(r"timed out|ConnectTimeout|ReadTimeout", re.IGNORECASE),
+        "The download took too long. The connection may be slow, or a firewall may be blocking GitHub. "
+        "Try again, or try another network.",
+    ),
+    (
+        re.compile(r"No module named|Could not start|is not recognized as an internal", re.IGNORECASE),
+        "MVT is not installed correctly. Close PhoneForensics, delete the .venv folder inside the "
+        "PhoneForensics folder, and start it again to reinstall.",
+    ),
+    (
+        re.compile(r"UnicodeEncodeError|UnicodeDecodeError", re.IGNORECASE),
+        "MVT could not write its output on this computer. Update PhoneForensics from the Home screen, then try again.",
+    ),
+)
+DOWNLOAD_FAILED_DEFAULT = "The lists could not be downloaded. Open the technical details below to see why."
+
+
+def explain_download_failure(lines: list[str]) -> str:
+    text = "\n".join(lines)
+    for pattern, explanation in DOWNLOAD_PROBLEMS:
+        if pattern.search(text):
+            return explanation
+    return DOWNLOAD_FAILED_DEFAULT
 
 
 def download_indicators_command() -> list[str]:
