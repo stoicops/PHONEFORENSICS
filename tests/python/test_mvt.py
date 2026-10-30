@@ -53,3 +53,31 @@ def test_indicator_status_counts_stix_files(tmp_path: Path) -> None:
     status = mvt.indicator_status(tmp_path)
     assert status["count"] == 1
     assert status["updated"] is not None
+
+
+def test_executable_prefers_the_script_next_to_this_python(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.undo()  # use the real executable() rather than the fixed one from the autouse fixture
+    import sys
+
+    scripts = tmp_path / "venv-bin"
+    scripts.mkdir()
+    name = "mvt-ios.exe" if sys.platform == "win32" else "mvt-ios"
+    script = scripts / name
+    script.write_text("")
+    script.chmod(0o755)
+    monkeypatch.setattr(mvt, "_script_dirs", lambda: [scripts])
+    monkeypatch.setenv("PATH", "")
+    assert mvt.executable("mvt-ios") == [str(script)]
+
+
+def test_executable_fallback_runs_mvt_without_any_scripts(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.undo()
+    import subprocess
+    import sys
+
+    monkeypatch.setattr("phoneforensics.mvt.shutil.which", lambda *args, **kwargs: None)
+    cmd = mvt.executable("mvt-ios")
+    assert cmd[0] == sys.executable
+    result = subprocess.run([*cmd, "--help"], capture_output=True, text=True, timeout=60, check=False)  # noqa: S603
+    assert result.returncode == 0, result.stderr
+    assert "download-iocs" in result.stdout

@@ -204,6 +204,12 @@ describe("behaviour", () => {
     await start.click();
     await page.waitForURL(/#\/case\//, { timeout: 60_000 });
     await page.getByRole("heading", { name: /No known spyware found|could not read/ }).waitFor();
+    // The sample bug report is a stub, so there may be nothing to read, but MVT itself must have
+    // started and finished successfully (this caught MVT not being found outside PATH).
+    const caseId = decodeURIComponent(page.url().split("#/case/")[1] ?? "");
+    const detail = await (await fetch(`${BASE}api/cases/${encodeURIComponent(caseId)}`)).json();
+    assert.equal(detail.summary.completed, true, "MVT did not run to completion");
+    assert.ok(detail.summary.files.includes("command.log"), "MVT never started");
     await page.goto(`${BASE}#/cases`);
     await page.getByText("E2E phone").waitFor();
 

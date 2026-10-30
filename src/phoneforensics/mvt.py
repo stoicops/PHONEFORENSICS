@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import shutil
 import sys
+import sysconfig
 from dataclasses import dataclass
 from datetime import datetime
 from importlib.metadata import PackageNotFoundError, version
@@ -35,13 +36,36 @@ SCAN_TYPES: dict[str, ScanSpec] = {
     "android-backup": ScanSpec("mvt-android", "check-backup", non_interactive=True, takes_password_flag=True),
 }
 
-_MODULES: dict[Tool, str] = {"mvt-ios": "mvt.ios", "mvt-android": "mvt.android"}
+# Fallback when no MVT launcher script can be found: call its entry point directly.
+# (`python -m mvt.ios` does not work: the packages have no __main__ module.)
+_ENTRY_POINTS: dict[Tool, str] = {"mvt-ios": "mvt.ios", "mvt-android": "mvt.android"}
+
+
+def _script_dirs() -> list[Path]:
+    """Folders where pip puts launcher scripts for the Python running this app (e.g. .venv/bin)."""
+    folders = [Path(sys.executable).parent]
+    scripts = sysconfig.get_path("scripts")
+    if scripts:
+        folders.append(Path(scripts))
+    return folders
 
 
 def executable(tool: Tool) -> list[str]:
-    """Find an MVT entry point, falling back to running the module with this Python."""
+    """Find an MVT command, preferring the one installed alongside this app's Python.
+
+    The launchers run `.venv/bin/python` (or `.venv\\Scripts\\python.exe`) directly, so the
+    virtualenv's script folder is usually *not* on PATH. Looking there first also avoids
+    picking up a different, system-wide MVT.
+    """
+    for folder in _script_dirs():
+        found = shutil.which(tool, path=str(folder))
+        if found:
+            return [found]
     found = shutil.which(tool)
-    return [found] if found else [sys.executable, "-m", _MODULES[tool]]
+    if found:
+        return [found]
+    module = _ENTRY_POINTS[tool]
+    return [sys.executable, "-c", f"import sys; from {module} import main; sys.argv[0] = {tool!r}; sys.exit(main())"]
 
 
 def installed_version() -> str | None:
