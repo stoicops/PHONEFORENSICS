@@ -6,6 +6,8 @@ import pytest
 
 from phoneforensics import mvt
 
+OUT = Path("/out")  # rendered with the native separator, e.g. "\\out" on Windows
+
 
 @pytest.fixture(autouse=True)
 def fixed_executable(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -13,18 +15,18 @@ def fixed_executable(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_ios_backup_command_with_fast_mode() -> None:
-    cmd = mvt.scan_command("ios-backup", "/b", Path("/out"), fast=True, password=None, extra_iocs=[])
-    assert cmd == ["mvt-ios", "check-backup", "--output", "/out", "--fast", "/b"]
+    cmd = mvt.scan_command("ios-backup", "/b", OUT, fast=True, password=None, extra_iocs=[])
+    assert cmd == ["mvt-ios", "check-backup", "--output", str(OUT), "--fast", "/b"]
 
 
 def test_ios_password_is_never_put_on_the_command_line() -> None:
-    cmd = mvt.scan_command("ios-backup", "/b", Path("/out"), fast=False, password="s3cret", extra_iocs=[])
+    cmd = mvt.scan_command("ios-backup", "/b", OUT, fast=False, password="s3cret", extra_iocs=[])
     assert "s3cret" not in cmd
     assert "s3cret" not in mvt.decrypt_command("/b", Path("/d"))
 
 
 def test_android_qf_is_non_interactive_and_takes_password() -> None:
-    cmd = mvt.scan_command("android-qf", "/q", Path("/out"), fast=True, password="pw", extra_iocs=["/i.stix2"])
+    cmd = mvt.scan_command("android-qf", "/q", OUT, fast=True, password="pw", extra_iocs=["/i.stix2"])
     assert cmd == [
         "mvt-android",
         "check-androidqf",
@@ -40,8 +42,8 @@ def test_android_qf_is_non_interactive_and_takes_password() -> None:
 
 
 def test_bugreport_gets_no_unsupported_flags() -> None:
-    cmd = mvt.scan_command("android-bugreport", "/r.zip", Path("/out"), fast=True, password="pw", extra_iocs=[])
-    assert cmd == ["mvt-android", "check-bugreport", "--output", "/out", "/r.zip"]
+    cmd = mvt.scan_command("android-bugreport", "/r.zip", OUT, fast=True, password="pw", extra_iocs=[])
+    assert cmd == ["mvt-android", "check-bugreport", "--output", str(OUT), "/r.zip"]
 
 
 def test_indicator_status_counts_stix_files(tmp_path: Path) -> None:
