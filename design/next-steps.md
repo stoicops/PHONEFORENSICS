@@ -1,0 +1,1 @@
+A numbered list of plain-language actions placed directly under the result hero. Provide two to four items, each a short imperative title and one sentence of why. Links go to named, trusted organisations. On the attention result the first step is always to stop and not wipe the phone.

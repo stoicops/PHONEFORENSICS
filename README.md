@@ -16,8 +16,8 @@ of known spyware such as Pegasus and Predator.
 - ⬇️ **One-click threat-indicator updates.**
 - 🔒 **Everything stays on your computer.** The app only listens on `127.0.0.1`; nothing is uploaded.
 
-![Home](docs/home.png)
-![Suspicious result](docs/detected.png)
+![Home](docs/screenshots/01-home-light.png)
+![Result with something to look at](docs/screenshots/08-result-attention.png)
 
 ## Getting started (non-technical)
 
@@ -49,6 +49,12 @@ Results are saved to `~/PhoneForensics/cases/` (override with the `PHONEFORENSIC
 | Android | AndroidQF collection                  | `mvt-android check-androidqf`  |
 | Android | Bug report zip                        | `mvt-android check-bugreport`  |
 | Android | `adb backup` file (.ab)               | `mvt-android check-backup`     |
+
+## Design
+
+The interface follows the design system in `design/tokens.json` (mirrored in `phoneforensics/static/tokens.css` and `components.css`): Atkinson Hyperlegible type, large controls, light and dark themes that follow the operating system, and calm amber rather than alarm red for findings.
+
+To show a "Buy me a coffee" link in the app bar, set `SUPPORT_URL` in `phoneforensics/app.py` or the `PHONEFORENSICS_SUPPORT_URL` environment variable.
 
 ## How it works
 

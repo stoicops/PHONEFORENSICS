@@ -26,6 +26,9 @@ STATIC_DIR = Path(__file__).parent / "static"
 DATA_DIR = Path(os.environ.get("PHONEFORENSICS_HOME", Path.home() / "PhoneForensics"))
 CASES_DIR = DATA_DIR / "cases"
 
+# Shown as "Buy me a coffee" in the app bar when set.
+SUPPORT_URL = ""
+
 app = Flask(__name__, static_folder=None)
 jobs = {}
 jobs_lock = threading.Lock()
@@ -311,6 +314,7 @@ def status():
             "iocs": ioc_status(),
             "cases_dir": str(CASES_DIR),
             "home": str(Path.home()),
+            "support_url": os.environ.get("PHONEFORENSICS_SUPPORT_URL", SUPPORT_URL),
         }
     )
 

@@ -4,34 +4,68 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PhoneForensics</title>
+<link rel="stylesheet" href="/static/tokens.css">
+<link rel="stylesheet" href="/static/components.css">
 <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-<div class="bg-glow"></div>
-<aside class="sidebar">
-  <div class="brand">
-    <svg viewBox="0 0 32 32" class="logo"><path d="M16 2 4 7v8c0 7.5 5 13.5 12 15 7-1.5 12-7.5 12-15V7z" fill="url(#g)"/><rect x="12" y="9" width="8" height="14" rx="2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="20" r="1" fill="#fff"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs></svg>
-    <div><b>PhoneForensics</b><small>by Surinder Lall · powered by MVT</small></div>
-  </div>
-  <nav>
-    <a href="#/" data-nav="home">🏠 <span>Home</span></a>
-    <a href="#/scan" data-nav="scan">🔍 <span>New check</span></a>
-    <a href="#/cases" data-nav="cases">🗂️ <span>Past checks</span></a>
-    <a href="#/help" data-nav="help">💡 <span>Guide</span></a>
+<header class="pf-appbar">
+  <a class="pf-appbar__name" href="#/"><svg class="pf-icon"><use href="#i-shield"/></svg><span class="pf-appbar__text">PhoneForensics</span></a>
+  <nav aria-label="Main">
+    <a class="pf-navlink" href="#/" data-nav="home"><svg class="pf-icon"><use href="#i-home"/></svg><span>Home</span></a>
+    <a class="pf-navlink" href="#/scan" data-nav="scan"><svg class="pf-icon"><use href="#i-plus"/></svg><span>New check</span></a>
+    <a class="pf-navlink" href="#/cases" data-nav="cases"><svg class="pf-icon"><use href="#i-clock"/></svg><span>Past checks</span></a>
+    <a class="pf-navlink" href="#/help" data-nav="help"><svg class="pf-icon"><use href="#i-book"/></svg><span>Guide</span></a>
+    <a class="pf-navlink pf-navlink--support" id="supportLink" href="#" target="_blank" rel="noopener" hidden><svg class="pf-icon"><use href="#i-coffee"/></svg><span>Buy me a coffee</span></a>
   </nav>
-  <div class="side-foot" id="sideStatus">Checking setup…</div>
-</aside>
-<main id="view"></main>
+</header>
+<main id="view" class="pf-page" tabindex="-1"></main>
 
-<div class="modal" id="browser" hidden>
-  <div class="modal-card">
-    <header><h3>Choose a location</h3><button class="icon-btn" data-close>✕</button></header>
-    <div class="crumb"><button class="btn ghost sm" id="upBtn">⬆ Up</button><input id="pathInput" spellcheck="false"><button class="btn ghost sm" id="goBtn">Go</button></div>
-    <div class="file-list" id="fileList"></div>
-    <footer><span id="browserHint" class="muted"></span><button class="btn primary" id="pickBtn">Use this folder</button></footer>
+<div class="pf-modal" id="browser" hidden>
+  <div class="pf-scrim">
+    <div class="pf-dialog" role="dialog" aria-modal="true" aria-labelledby="browserTitle">
+      <div class="pf-dialog__head"><h2 class="pf-dialog__title" id="browserTitle">Choose a folder</h2>
+        <button class="pf-iconbtn" data-close aria-label="Close"><svg class="pf-icon"><use href="#i-x"/></svg></button></div>
+      <div class="pf-dialog__body">
+        <div class="pf-input-row"><button class="pf-btn" id="upBtn"><svg class="pf-icon"><use href="#i-up"/></svg>Up</button>
+          <input class="pf-input pf-input--mono" id="pathInput" spellcheck="false" aria-label="Folder path"></div>
+        <ul class="pf-folders" id="fileList" role="listbox"></ul>
+        <p class="pf-field__help" id="browserHint"></p>
+      </div>
+      <div class="pf-dialog__foot"><button class="pf-btn pf-btn--quiet" data-close>Cancel</button><button class="pf-btn pf-btn--primary" id="pickBtn">Use this folder</button></div>
+    </div>
   </div>
 </div>
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.6 8 9.8 4.6-1.2 8-4.8 8-9.8V6z"/></symbol>
+  <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.6 8 9.8 4.6-1.2 8-4.8 8-9.8V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-shield-alert" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.6 8 9.8 4.6-1.2 8-4.8 8-9.8V6z"/><path d="M12 8v5M12 16.5v.01"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M6 12h12"/></symbol>
+  <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h2a2.5 2.5 0 0 1 0 5h-2M8 3v3M12 3v3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-android" viewBox="0 0 24 24"><rect x="5" y="9" width="14" height="10" rx="2"/><path d="M8 9a4 4 0 0 1 8 0M8 5 6.5 3M16 5l1.5-2M9.5 13v.01M14.5 13v.01"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></symbol>
+  <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="13" rx="5"/><path d="M12 11v9M7 12H3M21 12h-4M7 17H4M20 17h-3M9 7a3 3 0 0 1 6 0"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></symbol>
+</svg>
 <script src="/static/app.js"></script>
 </body>
 </html>

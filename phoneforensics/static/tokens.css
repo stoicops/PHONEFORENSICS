@@ -1,0 +1,119 @@
+/* PhoneForensics design tokens. Generated from tokens.json. Light is the default; dark follows the OS unless data-theme is set on <html>. */
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f3ee;
+  --surface: #ffffff;
+  --surface-sunken: #eeebe4;
+  --border: #dcd7cd;
+  --border-strong: #857f73;
+  --ink: #1b2422;
+  --ink-muted: #4d5955;
+  --primary: #1d5c57;
+  --primary-hover: #164844;
+  --on-primary: #ffffff;
+  --primary-soft: #dceae7;
+  --focus: #0a58a8;
+  --link: #0a58a8;
+  --clear: #1c6a47;
+  --clear-soft: #e2f0e7;
+  --clear-border: #7fb895;
+  --attention: #8f4500;
+  --attention-soft: #fbeedc;
+  --attention-border: #d99a55;
+  --critical: #a3241c;
+  --critical-soft: #fbe6e3;
+  --info: #2a5a8a;
+  --info-soft: #e3ecf5;
+  --running: #1d5c57;
+  --shadow-card: 0 1px 2px rgba(27,36,34,0.06), 0 4px 16px rgba(27,36,34,0.06);
+  --shadow-hero: 0 2px 4px rgba(27,36,34,0.06), 0 12px 32px rgba(27,36,34,0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --bg: #0e1514;
+  --surface: #151e1d;
+  --surface-sunken: #0a100f;
+  --border: #2a3533;
+  --border-strong: #66807b;
+  --ink: #edf2f0;
+  --ink-muted: #a8b6b2;
+  --primary: #6fc6ba;
+  --primary-hover: #8ad5cb;
+  --on-primary: #0a1f1c;
+  --primary-soft: #17302d;
+  --focus: #8bb8ff;
+  --link: #8bb8ff;
+  --clear: #86d4a8;
+  --clear-soft: #12291e;
+  --clear-border: #336f50;
+  --attention: #f4b46e;
+  --attention-soft: #2c1f12;
+  --attention-border: #7d5628;
+  --critical: #ff9d92;
+  --critical-soft: #2e1513;
+  --info: #9fc4ec;
+  --info-soft: #132132;
+  --running: #6fc6ba;
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-hero: 0 2px 8px rgba(0,0,0,0.5);
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1514;
+  --surface: #151e1d;
+  --surface-sunken: #0a100f;
+  --border: #2a3533;
+  --border-strong: #66807b;
+  --ink: #edf2f0;
+  --ink-muted: #a8b6b2;
+  --primary: #6fc6ba;
+  --primary-hover: #8ad5cb;
+  --on-primary: #0a1f1c;
+  --primary-soft: #17302d;
+  --focus: #8bb8ff;
+  --link: #8bb8ff;
+  --clear: #86d4a8;
+  --clear-soft: #12291e;
+  --clear-border: #336f50;
+  --attention: #f4b46e;
+  --attention-soft: #2c1f12;
+  --attention-border: #7d5628;
+  --critical: #ff9d92;
+  --critical-soft: #2e1513;
+  --info: #9fc4ec;
+  --info-soft: #132132;
+  --running: #6fc6ba;
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-hero: 0 2px 8px rgba(0,0,0,0.5);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --control-lg: 56px;
+  --control-md: 48px;
+  --content-max: 760px;
+  --font-sans: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.display { font-family: var(--font-sans); font-size: 40px; line-height: 48px; font-weight: 700; letter-spacing: -0.01em; }
+.h1 { font-family: var(--font-sans); font-size: 32px; line-height: 40px; font-weight: 700; }
+.h2 { font-family: var(--font-sans); font-size: 24px; line-height: 32px; font-weight: 700; }
+.h3 { font-family: var(--font-sans); font-size: 20px; line-height: 28px; font-weight: 700; }
+.body-lg { font-family: var(--font-sans); font-size: 18px; line-height: 28px; font-weight: 400; }
+.body { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 400; }
+.small { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 700; letter-spacing: 0.02em; }
+.button { font-family: var(--font-sans); font-size: 18px; line-height: 24px; font-weight: 700; }
+.mono { font-family: var(--font-mono); font-size: 14px; line-height: 22px; font-weight: 400; }
