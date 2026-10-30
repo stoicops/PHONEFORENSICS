@@ -122,7 +122,7 @@ def check(fetch: FetchJson = fetch_json, root: Path | None = None, use_git: bool
             report["app"]["latest"] = latest or None
             html_url = str(release.get("html_url") or "")
             # Only ever link users to this project's GitHub pages.
-            report["app"]["url"] = html_url if html_url.startswith(RELEASES_URL) else RELEASES_URL
+            report["app"]["url"] = html_url if html_url.lower().startswith(RELEASES_URL.lower()) else RELEASES_URL
             report["app"]["available"] = bool(latest) and is_newer(latest, __version__)
         except urllib.error.HTTPError as exc:
             if exc.code != 404:  # 404 means nothing has been released yet

@@ -1,6 +1,6 @@
 # PhoneForensics
 
-[![CI](https://github.com/stoicops/phoneforensics/actions/workflows/ci.yml/badge.svg)](https://github.com/stoicops/phoneforensics/actions/workflows/ci.yml)
+[![CI](https://github.com/stoicops/PHONEFORENSICS/actions/workflows/ci.yml/badge.svg)](https://github.com/stoicops/PHONEFORENSICS/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **A point-and-click app for checking phones for spyware. No command line needed.**
@@ -43,7 +43,7 @@ AndroidQF and Android bug reports. The same guides are in [docs/SAVING-PHONE-DAT
 **Updating:** click **Check for updates** on the Home screen.
 
 - Installed with `git clone`: **Update now** gets the latest version, updates MVT and restarts.
-- Downloaded as a ZIP: the app tells you when a new [release](https://github.com/stoicops/phoneforensics/releases) is out and links to it. **Update now** still updates MVT.
+- Downloaded as a ZIP: the app tells you when a new [release](https://github.com/stoicops/PHONEFORENSICS/releases) is out and links to it. **Update now** still updates MVT.
 - Spyware lists are updated separately with **Update lists**. Do this often.
 
 ### Acceptable use and consent
@@ -157,7 +157,7 @@ Android commands only take the password as an argument, so it is briefly visible
 computer. See [docs/DECISIONS.md](docs/DECISIONS.md) for the reasoning behind these and other choices.
 
 Found a vulnerability? Please open a private
-[security advisory](https://github.com/stoicops/phoneforensics/security/advisories/new) rather than a public issue.
+[security advisory](https://github.com/stoicops/PHONEFORENSICS/security/advisories/new) rather than a public issue.
 
 ### Releasing
 

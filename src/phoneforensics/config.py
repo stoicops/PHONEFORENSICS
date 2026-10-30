@@ -14,7 +14,7 @@ LOCAL_HOST = "127.0.0.1"
 ALLOWED_HOSTS = frozenset({"127.0.0.1", "localhost"})
 
 # Where new versions of PhoneForensics are published.
-UPDATE_REPO = "stoicops/phoneforensics"
+UPDATE_REPO = "stoicops/PHONEFORENSICS"  # exact casing GitHub uses in its links
 RELEASES_URL = f"https://github.com/{UPDATE_REPO}/releases"
 LATEST_RELEASE_API = f"https://api.github.com/repos/{UPDATE_REPO}/releases/latest"
 MVT_PYPI_API = "https://pypi.org/pypi/mvt/json"

@@ -39,8 +39,8 @@ dev = [
 phoneforensics = "phoneforensics.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/stoicops/phoneforensics"
-Issues = "https://github.com/stoicops/phoneforensics/issues"
+Homepage = "https://github.com/stoicops/PHONEFORENSICS"
+Issues = "https://github.com/stoicops/PHONEFORENSICS/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

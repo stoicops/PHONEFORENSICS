@@ -3,7 +3,7 @@
 PhoneForensics handles sensitive phone data, so security reports are very welcome.
 
 **Please do not open a public issue.** Report privately through
-[GitHub security advisories](https://github.com/stoicops/phoneforensics/security/advisories/new).
+[GitHub security advisories](https://github.com/stoicops/PHONEFORENSICS/security/advisories/new).
 Include the version, your operating system and steps to reproduce.
 
 Problems in MVT itself should be reported to the [MVT project](https://github.com/mvt-project/mvt/security).

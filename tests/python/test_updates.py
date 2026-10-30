@@ -65,6 +65,17 @@ def test_new_release_is_offered_with_its_link() -> None:
     assert report["errors"] == []
 
 
+def test_release_link_matching_ignores_case() -> None:
+    link = f"{RELEASES_URL.lower()}/tag/v99.0.0"
+    report = updates.check(
+        fetcher(
+            {LATEST_RELEASE_API: {"tag_name": "v99.0.0", "html_url": link}, MVT_PYPI_API: {"info": {"version": "1"}}}
+        ),
+        use_git=False,
+    )
+    assert report["app"]["url"] == link
+
+
 def test_release_link_outside_project_is_replaced() -> None:
     report = updates.check(
         fetcher(
