@@ -1,0 +1,294 @@
+/* App-specific glue on top of tokens.css + components.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+.pf-appbar__name {
+  text-decoration: none;
+}
+html,
+body {
+  overflow-x: hidden;
+}
+.pf-check > span {
+  min-width: 0;
+}
+[hidden] {
+  /* biome-ignore lint/complexity/noImportantStyles: the hidden attribute must beat any component display rule */
+  display: none !important;
+}
+.pf-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: auto;
+}
+.pf-modal .pf-scrim {
+  min-height: 100vh;
+}
+.pf-folders {
+  max-height: 46vh;
+  overflow: auto;
+}
+.pf-folders li.is-file {
+  color: var(--ink-muted);
+  cursor: default;
+}
+.pf-page:focus {
+  outline: none;
+}
+.pf-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.pf-head p {
+  margin: 0;
+}
+.pf-stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.pf-h2 {
+  font: 700 24px / 32px var(--font-sans);
+  margin: 0;
+}
+.pf-body-lg {
+  font-size: 18px;
+  line-height: 28px;
+  margin: 0;
+}
+.pf-card h3 {
+  font: 700 20px / 28px var(--font-sans);
+  margin: 0 0 var(--space-2);
+}
+.pf-card p {
+  margin: 0;
+}
+.pf-scan .pf-scan__ring {
+  animation: pf-spin 1.4s linear infinite;
+}
+@keyframes pf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-scan .pf-scan__ring {
+    animation-duration: 6s;
+  }
+}
+.pf-log .w {
+  color: var(--attention);
+}
+.pf-log .c {
+  color: var(--critical);
+}
+.pf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 20px;
+}
+.pf-table th,
+.pf-table td {
+  text-align: left;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.pf-table th {
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+}
+.pf-table-wrap {
+  overflow-x: auto;
+}
+.pf-tabpanel {
+  padding-top: var(--space-5);
+}
+.pf-empty {
+  text-align: center;
+  padding: var(--space-7) var(--space-4);
+  color: var(--ink-muted);
+}
+.pf-empty .pf-icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-3);
+}
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-5);
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+#toast div {
+  background: var(--ink);
+  color: var(--bg);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hero);
+  font-weight: 700;
+}
+.pf-backups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.pf-check {
+  cursor: pointer;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+}
+@media print {
+  .pf-appbar,
+  .pf-hero__actions,
+  .pf-tabs,
+  .pf-head .pf-row,
+  #toast {
+    /* biome-ignore lint/complexity/noImportantStyles: print must override screen layout */
+    display: none !important;
+  }
+  .pf-tabpanel[hidden] {
+    /* biome-ignore lint/complexity/noImportantStyles: print must show every tab panel */
+    display: block !important;
+  }
+  .pf-hero,
+  .pf-card {
+    box-shadow: none;
+  }
+}
+
+/* Utilities used instead of inline styles (keeps the CSP free of inline scripts and most inline styles). */
+.pf-m0 {
+  margin: 0;
+}
+.pf-mt-3 {
+  margin-top: var(--space-3);
+}
+.pf-mt-4 {
+  margin-top: var(--space-4);
+}
+.pf-center {
+  text-align: center;
+}
+.pf-row--center {
+  justify-content: center;
+}
+.pf-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.pf-fieldset legend {
+  margin-bottom: var(--space-4);
+  padding: 0;
+}
+.pf-plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pf-checkbox {
+  cursor: pointer;
+}
+.pf-checkbox input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary);
+}
+.pf-log--tall {
+  max-height: 420px;
+}
+.pf-summary-toggle {
+  cursor: pointer;
+  font-weight: 700;
+}
+.pf-check__mark--neutral {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+.pf-check[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.pf-check[aria-pressed="false"] .pf-check__chev {
+  visibility: hidden;
+}
+/* Inline replacements for <p> inside labels/links, which is invalid HTML. */
+.pf-choice__title,
+.pf-choice__text,
+.pf-choice__flag,
+.pf-consent__title,
+.pf-consent__text,
+.pf-check__name,
+.pf-check__meta {
+  display: block;
+}
+.pf-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.pf-skip {
+  position: absolute;
+  left: var(--space-4);
+  top: -100px;
+  z-index: 30;
+  background: var(--surface);
+  color: var(--ink);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+}
+.pf-skip:focus {
+  top: var(--space-3);
+}
+h1:focus,
+h2:focus,
+legend:focus {
+  outline: none;
+}
+
+.pf-policy {
+  margin: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.pf-policy__item {
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.pf-policy dt {
+  font-weight: 700;
+}
+.pf-policy dd {
+  margin: var(--space-1) 0 0;
+  color: var(--ink-muted);
+}
+.pf-btn--danger {
+  border-color: var(--critical);
+  color: var(--critical);
+}
+.pf-btn--danger:hover {
+  background: var(--critical-soft);
+}

@@ -4,19 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PhoneForensics</title>
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Check an iPhone or Android phone for known spyware, privately, on this computer.">
+<link rel="stylesheet" href="/static/fonts.css">
 <link rel="stylesheet" href="/static/tokens.css">
 <link rel="stylesheet" href="/static/components.css">
 <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
+<a class="pf-skip" href="#view">Skip to main content</a>
 <header class="pf-appbar">
-  <a class="pf-appbar__name" href="#/"><svg class="pf-icon"><use href="#i-shield"/></svg><span class="pf-appbar__text">PhoneForensics</span></a>
+  <a class="pf-appbar__name" href="#/" aria-label="PhoneForensics home"><svg class="pf-icon"><use href="#i-shield"/></svg><span class="pf-appbar__text">PhoneForensics</span></a>
   <nav aria-label="Main">
     <a class="pf-navlink" href="#/" data-nav="home"><svg class="pf-icon"><use href="#i-home"/></svg><span>Home</span></a>
     <a class="pf-navlink" href="#/scan" data-nav="scan"><svg class="pf-icon"><use href="#i-plus"/></svg><span>New check</span></a>
     <a class="pf-navlink" href="#/cases" data-nav="cases"><svg class="pf-icon"><use href="#i-clock"/></svg><span>Past checks</span></a>
     <a class="pf-navlink" href="#/help" data-nav="help"><svg class="pf-icon"><use href="#i-book"/></svg><span>Guide</span></a>
-    <a class="pf-navlink pf-navlink--support" id="supportLink" href="#" target="_blank" rel="noopener" hidden><svg class="pf-icon"><use href="#i-coffee"/></svg><span>Buy me a coffee</span></a>
+    <a class="pf-navlink pf-navlink--support" id="supportLink" href="#" target="_blank" rel="noopener noreferrer" hidden><svg class="pf-icon"><use href="#i-coffee"/></svg><span>Buy me a coffee</span></a>
   </nav>
 </header>
 <main id="view" class="pf-page" tabindex="-1"></main>
@@ -25,20 +29,20 @@
   <div class="pf-scrim">
     <div class="pf-dialog" role="dialog" aria-modal="true" aria-labelledby="browserTitle">
       <div class="pf-dialog__head"><h2 class="pf-dialog__title" id="browserTitle">Choose a folder</h2>
-        <button class="pf-iconbtn" data-close aria-label="Close"><svg class="pf-icon"><use href="#i-x"/></svg></button></div>
+        <button class="pf-iconbtn" type="button" data-close aria-label="Close"><svg class="pf-icon"><use href="#i-x"/></svg></button></div>
       <div class="pf-dialog__body">
-        <div class="pf-input-row"><button class="pf-btn" id="upBtn"><svg class="pf-icon"><use href="#i-up"/></svg>Up</button>
+        <div class="pf-input-row"><button class="pf-btn" type="button" id="upBtn"><svg class="pf-icon"><use href="#i-up"/></svg>Up</button>
           <input class="pf-input pf-input--mono" id="pathInput" spellcheck="false" aria-label="Folder path"></div>
-        <ul class="pf-folders" id="fileList" role="listbox"></ul>
+        <ul class="pf-folders" id="fileList" role="listbox" aria-label="Folders and files"></ul>
         <p class="pf-field__help" id="browserHint"></p>
       </div>
-      <div class="pf-dialog__foot"><button class="pf-btn pf-btn--quiet" data-close>Cancel</button><button class="pf-btn pf-btn--primary" id="pickBtn">Use this folder</button></div>
+      <div class="pf-dialog__foot"><button class="pf-btn pf-btn--quiet" type="button" data-close>Cancel</button><button class="pf-btn pf-btn--primary" type="button" id="pickBtn">Use this folder</button></div>
     </div>
   </div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<svg class="pf-visually-hidden" aria-hidden="true">
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.6 8 9.8 4.6-1.2 8-4.8 8-9.8V6z"/></symbol>
   <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.6 8 9.8 4.6-1.2 8-4.8 8-9.8V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
   <symbol id="i-shield-alert" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.6 8 9.8 4.6-1.2 8-4.8 8-9.8V6z"/><path d="M12 8v5M12 16.5v.01"/></symbol>
@@ -66,6 +70,7 @@
   <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></symbol>
 </svg>
-<script src="/static/app.js"></script>
+<noscript><p class="pf-page">PhoneForensics needs JavaScript turned on in this browser.</p></noscript>
+<script type="module" src="/static/js/main.js"></script>
 </body>
 </html>

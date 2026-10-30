@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": { "includes": ["**", "!**/fonts", "!src/phoneforensics/static/components.css", "!src/phoneforensics/static/tokens.css", "!src/phoneforensics/static/fonts.css"] },
+  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 120 },
+  "linter": {
+    "rules": {
+      "recommended": true,
+      "security": { "noDangerouslySetInnerHtml": "error" },
+      "suspicious": { "noConsole": { "level": "error", "options": { "allow": ["error", "warn"] } } },
+      "style": { "useConst": "error", "noParameterAssign": "error" }
+    }
+  },
+  "javascript": { "formatter": { "quoteStyle": "double" } }
+}

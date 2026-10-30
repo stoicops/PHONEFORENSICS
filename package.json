@@ -1,0 +1,22 @@
+{
+  "name": "phoneforensics-web",
+  "private": true,
+  "description": "Front-end tooling for PhoneForensics. The app itself is a Python package; nothing here is shipped.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "lint": "biome check src/phoneforensics/static tests/js tests/e2e scripts",
+    "format": "biome check --write src/phoneforensics/static tests/js tests/e2e scripts",
+    "docs": "node scripts/guide-docs.js > docs/SAVING-PHONE-DATA.md",
+    "typecheck": "tsc -p jsconfig.json",
+    "test": "node --test \"tests/js/**/*.test.js\"",
+    "test:e2e": "node --test --test-concurrency=1 \"tests/e2e/**/*.test.js\""
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.4",
+    "axe-core": "4.10.3",
+    "playwright": "1.63.0",
+    "typescript": "5.9.2"
+  }
+}

@@ -4,20 +4,82 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phoneforensics"
-version = "0.1.0"
+version = "0.2.0"
 description = "A friendly point-and-click front end for the Mobile Verification Toolkit (MVT)"
 readme = "README.md"
-authors = [{ name = "Surinder Lall" }]
 license = "MIT"
-license-files = ["LICENSE", "NOTICE.md"]
+license-files = ["LICENSE", "NOTICE.md", "LICENSES/*"]
+authors = [{ name = "Surinder Lall" }]
 requires-python = ">=3.10"
-dependencies = ["mvt", "flask>=2.3"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Topic :: Security",
+]
+dependencies = [
+  "mvt>=2.5",
+  "flask>=3.0,<4",
+  "waitress>=3.0.1,<4",
+  "packaging>=23",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=5",
+  "mypy>=1.10",
+  "ruff>=0.6",
+  "build>=1.2",
+  "pre-commit>=3.7",
+  "types-waitress",
+  "pip-audit>=2.7",
+]
 
 [project.scripts]
-phoneforensics = "phoneforensics.app:main"
+phoneforensics = "phoneforensics.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/stoicops/phoneforensics"
+Issues = "https://github.com/stoicops/phoneforensics/issues"
 
 [tool.setuptools.packages.find]
-include = ["phoneforensics*"]
+where = ["src"]
 
 [tool.setuptools.package-data]
-phoneforensics = ["static/*"]
+phoneforensics = ["py.typed", "static/*", "static/**/*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF", "PTH", "N", "C4", "PL"]
+# E501: line length is enforced by `ruff format`; long user-facing strings are left intact.
+ignore = ["E501", "PLR0913", "PLR2004", "PLR0915", "PLC0415"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S108", "PLR2004", "PLR0917"]  # fixtures are positional by design
+
+[tool.mypy]
+strict = true
+python_version = "3.10"
+mypy_path = ["src", "tests/python"]
+files = ["src", "tests/python"]
+
+[[tool.mypy.overrides]]
+module = ["mvt.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+pythonpath = ["tests/python"]
+addopts = "--strict-markers -ra"
+
+[tool.coverage.run]
+source = ["phoneforensics"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
