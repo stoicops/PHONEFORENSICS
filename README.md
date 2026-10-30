@@ -31,6 +31,20 @@ of known spyware such as Pegasus and Predator.
 The first launch installs everything it needs (a few minutes). Your browser then opens PhoneForensics.
 Keep the small black window open while you use the app; close it to quit.
 
+## Saving data from the phone
+
+Step-by-step guides for iPhone (Mac and Windows), AndroidQF and Android bug reports are built into the app's **Guide** tab, and also in [docs/SAVING-PHONE-DATA.md](docs/SAVING-PHONE-DATA.md).
+
+## Updating
+
+Click **Check for updates** on the Home screen.
+
+- **Installed with git** (`git clone`): **Update now** downloads the latest code, updates MVT and restarts the app.
+- **Downloaded as a ZIP**: the app tells you when a new [release](https://github.com/stoicops/phoneforensics/releases) is out and links to it. **Update now** still updates MVT.
+- **Spyware lists** are updated separately with **Update lists**. Do this often.
+
+Maintainers: bump `__version__` in `phoneforensics/__init__.py` and `version` in `pyproject.toml`, then publish a GitHub release tagged `vX.Y.Z`. ZIP users are notified automatically.
+
 ## Getting started (technical)
 
 ```bash

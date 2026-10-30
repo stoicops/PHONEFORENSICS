@@ -15,16 +15,23 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.request
 import uuid
 import webbrowser
 from datetime import datetime
 from pathlib import Path
 
+from . import __version__
 from flask import Flask, Response, abort, jsonify, request, send_from_directory
 
 STATIC_DIR = Path(__file__).parent / "static"
 DATA_DIR = Path(os.environ.get("PHONEFORENSICS_HOME", Path.home() / "PhoneForensics"))
 CASES_DIR = DATA_DIR / "cases"
+
+# Where new versions of PhoneForensics are published.
+UPDATE_REPO = "stoicops/phoneforensics"
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+SERVER_ARGS = []
 
 # Shown as "Buy me a coffee" in the app bar when set.
 SUPPORT_URL = "https://buymeacoffee.com/surinder"
@@ -310,6 +317,7 @@ def status():
         {
             "mvt": mvt_version(),
             "python": platform.python_version(),
+            "version": __version__,
             "platform": platform.system(),
             "iocs": ioc_status(),
             "cases_dir": str(CASES_DIR),
@@ -536,17 +544,139 @@ def open_case_folder(case_id):
     return jsonify({"ok": True})
 
 
+# ---------------------------------------------------------------- updates
+
+
+def fetch_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "PhoneForensics", "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=8) as resp:
+        return json.load(resp)
+
+
+def version_key(value):
+    try:
+        from packaging.version import Version
+
+        return Version(value.lstrip("v"))
+    except Exception:
+        return tuple(int(p) if p.isdigit() else 0 for p in value.lstrip("v").split("."))
+
+
+def is_git_checkout():
+    return (PROJECT_DIR / ".git").exists() and shutil.which("git") is not None
+
+
+def git(*args):
+    return subprocess.run(["git", "-C", str(PROJECT_DIR), *args], capture_output=True, text=True, timeout=60)
+
+
+@app.get("/api/updates")
+def check_updates():
+    result = {
+        "app": {"current": __version__, "latest": None, "available": False, "url": f"https://github.com/{UPDATE_REPO}/releases"},
+        "mvt": {"current": mvt_version(), "latest": None, "available": False},
+        "method": "git" if is_git_checkout() else "download",
+        "errors": [],
+    }
+    if result["method"] == "git":
+        # Installed with git: compare against the branch this checkout tracks.
+        fetched = git("fetch", "--quiet")
+        behind = git("rev-list", "--count", "HEAD..@{u}")
+        if fetched.returncode == 0 and behind.returncode == 0:
+            count = int(behind.stdout.strip() or 0)
+            result["app"]["available"] = count > 0
+            result["app"]["latest"] = f"{count} new change{'s' if count != 1 else ''}" if count else __version__
+        else:
+            result["errors"].append("Could not reach GitHub to look for app updates.")
+    else:
+        try:
+            release = fetch_json(f"https://api.github.com/repos/{UPDATE_REPO}/releases/latest")
+            latest = release.get("tag_name", "").lstrip("v")
+            result["app"].update(latest=latest, url=release.get("html_url") or result["app"]["url"])
+            result["app"]["available"] = bool(latest) and version_key(latest) > version_key(__version__)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 404:  # 404 just means nothing has been released yet
+                result["errors"].append("Could not reach GitHub to look for app updates.")
+        except Exception:
+            result["errors"].append("Could not reach GitHub to look for app updates.")
+    try:
+        latest_mvt = fetch_json("https://pypi.org/pypi/mvt/json")["info"]["version"]
+        result["mvt"]["latest"] = latest_mvt
+        current = result["mvt"]["current"]
+        result["mvt"]["available"] = not current or version_key(latest_mvt) > version_key(current)
+    except Exception:
+        result["errors"].append("Could not reach PyPI to look for MVT updates.")
+    return jsonify(result)
+
+
+@app.post("/api/updates/apply")
+def apply_updates():
+    if any(j.kind in ("scan", "update") and j.status == "running" for j in jobs.values()):
+        return jsonify({"error": "Please wait for the running check to finish first."}), 409
+    pip = [sys.executable, "-m", "pip", "install", "--upgrade", "--disable-pip-version-check"]
+
+    def worker(job):
+        if is_git_checkout():
+            job.log("Downloading the latest PhoneForensics...")
+            if run_command(job, ["git", "-C", str(PROJECT_DIR), "pull", "--ff-only"]) != 0:
+                job.finish("failed", "Could not download the app update. If you changed files in this folder, ask for help.")
+                return
+            if run_command(job, pip + ["-e", str(PROJECT_DIR)]) != 0:
+                job.finish("failed", "Could not install the app update.")
+                return
+        job.log("Updating MVT...")
+        if run_command(job, pip + ["mvt"]) != 0:
+            job.finish("failed", "Could not update MVT. Check your internet connection.")
+            return
+        job.finish("done")
+
+    job = start_job("update", "Updating PhoneForensics", None, worker)
+    return jsonify(job.to_dict())
+
+
+@app.post("/api/restart")
+def restart():
+    if any(j.status == "running" for j in jobs.values()):
+        return jsonify({"error": "Something is still running."}), 409
+
+    def relaunch():
+        time.sleep(0.5)
+        # Start a fresh copy (it waits for this one to release the port), then exit.
+        subprocess.Popen([sys.executable, "-m", "phoneforensics", *SERVER_ARGS], cwd=str(PROJECT_DIR))
+        os._exit(0)
+
+    threading.Thread(target=relaunch, daemon=True).start()
+    return jsonify({"ok": True})
+
+
+def wait_for_port(port, timeout=20):
+    """After an in-app restart the previous copy may still hold the port briefly."""
+    import socket
+
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        with socket.socket() as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                sock.bind(("127.0.0.1", port))
+                return
+            except OSError:
+                time.sleep(0.5)
+
+
 def main():
     parser = argparse.ArgumentParser(description="PhoneForensics - point-and-click MVT")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--no-browser", action="store_true", help="Don't open a browser window automatically")
     args = parser.parse_args()
 
+    SERVER_ARGS[:] = ["--port", str(args.port), "--no-browser"]
     CASES_DIR.mkdir(parents=True, exist_ok=True)
     url = f"http://127.0.0.1:{args.port}/"
     print(f"\n  PhoneForensics is running at {url}\n  Keep this window open while you use it. Press Ctrl+C to quit.\n")
     if not args.no_browser:
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+    wait_for_port(args.port)
     app.run(host="127.0.0.1", port=args.port, threaded=True, debug=False)
 
 

@@ -120,8 +120,58 @@ async function home() {
         <a class="pf-btn pf-btn--quiet" style="margin-top:var(--space-4)" href="#/cases">See past checks</a></div>
       <div class="pf-stat ${flagged ? "pf-stat--attention" : "pf-stat--clear"}"><p class="pf-stat__value">${flagged}</p><p class="pf-stat__label">Checks with something to look at</p></div>
     </div>
+    <section class="pf-card pf-stack" id="updates">
+      <div class="pf-head"><div><h2 class="pf-h2">Updates</h2><p class="pf-muted">PhoneForensics ${esc(status.version)} · MVT ${esc(status.mvt || "not installed")}</p></div>
+        <button class="pf-btn" id="checkUpd">${icon("refresh")}Check for updates</button></div>
+      <div id="updResult"></div>
+    </section>
     ${footer()}`;
   $("#updIoc").onclick = updateIocs;
+  $("#checkUpd").onclick = () => checkUpdates(true);
+  if (updateInfo) renderUpdates(updateInfo); else checkUpdates(false);
+}
+
+// ------------------------------------------------------------ app updates
+let updateInfo = null;
+async function checkUpdates(manual) {
+  const out = $("#updResult");
+  if (manual && out) out.innerHTML = `<p class="pf-muted" style="margin:0">Checking…</p>`;
+  try { updateInfo = await api("/api/updates"); } catch (e) { if (manual && out) out.innerHTML = `<p class="pf-muted" style="margin:0">${esc(e.message)}</p>`; return; }
+  if (manual || updateInfo.app.available || updateInfo.mvt.available) renderUpdates(updateInfo, manual);
+}
+function renderUpdates(u, manual) {
+  const out = $("#updResult");
+  if (!out) return;
+  const any = u.app.available || u.mvt.available;
+  if (!any) {
+    out.innerHTML = manual ? `<span class="pf-badge pf-badge--clear">${icon("check")}Everything is up to date</span>${u.errors.length ? `<p class="pf-field__help">${u.errors.map(esc).join(" ")}</p>` : ""}` : "";
+    return;
+  }
+  const lines = [];
+  if (u.app.available) lines.push(u.method === "git" ? `A new version of PhoneForensics is ready (${esc(u.app.latest)}).` : `PhoneForensics ${esc(u.app.latest)} is available.`);
+  if (u.mvt.available) lines.push(`MVT ${esc(u.mvt.latest)} is available${u.mvt.current ? ` (you have ${esc(u.mvt.current)})` : ""}.`);
+  const canInstall = u.method === "git" || !u.app.available;
+  out.innerHTML = `<div class="pf-note">${icon("download")}<div class="pf-stack-sm"><p style="margin:0">${lines.join(" ")}</p>
+    <div class="pf-row">
+      ${canInstall ? `<button class="pf-btn pf-btn--primary" id="applyUpd">${icon("download")}Update now</button>` : ""}
+      ${u.app.available && u.method !== "git" ? `<a class="pf-btn pf-btn--primary" href="${esc(u.app.url)}" target="_blank" rel="noopener">${icon("download")}Download the new version</a>` : ""}
+      ${u.app.available && u.method !== "git" && u.mvt.available ? `<button class="pf-btn" id="applyUpd">Update MVT only</button>` : ""}
+    </div></div></div>`;
+  const btn = $("#applyUpd");
+  if (btn) btn.onclick = async () => {
+    try { const job = await api("/api/updates/apply", { method: "POST" }); location.hash = `#/job/${job.id}`; } catch (e) { toast(e.message); }
+  };
+}
+async function restartApp() {
+  await api("/api/restart", { method: "POST" });
+  view.innerHTML = `<section class="pf-card pf-pad"><div class="pf-scan">
+    <svg class="pf-scan__ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="pf-scan__track" cx="50" cy="50" r="42"/><circle class="pf-scan__fill" cx="50" cy="50" r="42" stroke-dasharray="70 264"/></svg>
+    <h2 class="pf-scan__title">Restarting PhoneForensics…</h2><p class="pf-scan__text">This page will reload by itself in a few seconds.</p></div></section>`;
+  await new Promise((r) => setTimeout(r, 2000));
+  for (let i = 0; i < 30; i++) {
+    try { await api("/api/status"); location.hash = "#/"; location.reload(); return; } catch { await new Promise((r) => setTimeout(r, 1000)); }
+  }
+  view.innerHTML = `<div class="pf-note">${icon("info")}<p style="margin:0">PhoneForensics did not come back by itself. Close the black window and open PhoneForensics again.</p></div>`;
 }
 
 const footer = () => `<footer class="pf-footer">PhoneForensics by Surinder Lall · MIT License · Built on <a href="https://github.com/mvt-project/mvt" target="_blank" rel="noopener">MVT</a> (MVT License 1.1). Not affiliated with or endorsed by Amnesty International.</footer>`;
@@ -181,6 +231,7 @@ function stepLocate() {
   const e = wiz.ev;
   return `<h2 class="pf-h2">${e.heading}</h2>
     <ol class="pf-steps">${e.how.map(([t, d]) => `<li class="pf-steps__item"><div><p class="pf-steps__title">${t}</p><p class="pf-steps__text">${d}</p></div></li>`).join("")}</ol>
+    ${(GUIDE_FOR[e.type] || []).length ? `<div class="pf-note">${icon("book")}<p style="margin:0">Need more detail? Read the full guide: ${GUIDE_FOR[e.type].map((g) => `<a class="pf-link" href="#/help/${g}" target="_blank">${esc(GUIDES[g].title)}</a>`).join(" or ")}. It opens in a new tab.</p></div>` : ""}
     <div class="pf-card pf-stack">
       <div class="pf-field"><label class="pf-field__label" for="pathIn">${e.where}</label>
         <p class="pf-field__help" id="foundHelp">${e.type === "ios-backup" ? "Looking for iPhone backups on this computer…" : "Choose it with the button, or paste the location."}</p>
@@ -357,17 +408,18 @@ async function jobView(id) {
     view.innerHTML = `<div class="pf-empty">${icon("info")}<p>This check is no longer running.</p><a class="pf-btn" href="#/cases">See past checks</a></div>`;
     return;
   }
-  const isScan = job.kind === "scan";
-  const stages = isScan ? [["lists", "Load the latest spyware lists"], ["open", "Open the phone data"]] : [["dl", "Download the latest spyware lists"]];
+  const isScan = job.kind === "scan", isUpdate = job.kind === "update";
+  const stages = isScan ? [["lists", "Load the latest spyware lists"], ["open", "Open the phone data"]]
+    : isUpdate ? [["app", "Download the latest PhoneForensics"], ["mvt", "Update MVT"]] : [["dl", "Download the latest spyware lists"]];
   let current = 0;
-  view.innerHTML = `<h1 class="pf-page__title">${esc(isScan ? job.title : "Updating spyware lists")}</h1>
+  view.innerHTML = `<h1 class="pf-page__title">${esc(isScan ? job.title : isUpdate ? "Updating PhoneForensics" : "Updating spyware lists")}</h1>
     <section class="pf-card pf-pad"><div class="pf-scan">
       <svg class="pf-scan__ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="pf-scan__track" cx="50" cy="50" r="42"/><circle class="pf-scan__fill" cx="50" cy="50" r="42" stroke-dasharray="70 264"/></svg>
       <h2 class="pf-scan__title" id="phase" aria-live="polite">Starting…</h2>
-      <p class="pf-scan__text">${isScan ? "This usually takes 5 to 10 minutes. " : ""}You can leave this window open and come back. Time so far: <span id="elapsed">0 min</span>.</p>
+      <p class="pf-scan__text">${isScan ? "This usually takes 5 to 10 minutes. " : isUpdate ? "This usually takes a minute or two. " : ""}You can leave this window open and come back. Time so far: <span id="elapsed">0 min</span>.</p>
       <ul class="pf-stages" id="stages"></ul>
       <details class="pf-details"><summary>Show technical details</summary><div class="pf-log" id="log"></div></details>
-      <button class="pf-btn" id="cancelBtn">Stop check</button>
+      ${isUpdate ? "" : `<button class="pf-btn" id="cancelBtn">Stop check</button>`}
     </div></section>`;
   const drawStages = () => {
     $("#stages").innerHTML = stages.map(([, label], i) => {
@@ -385,7 +437,7 @@ async function jobView(id) {
   drawStages();
   const log = $("#log");
   const timer = setInterval(() => { const el = $("#elapsed"); if (el) el.textContent = `${Math.floor((Date.now() / 1000 - job.started) / 60)} min`; }, 5000);
-  $("#cancelBtn").onclick = () => api(`/api/jobs/${id}/cancel`, { method: "POST" }).then(() => toast("Stopping the check…"));
+  if ($("#cancelBtn")) $("#cancelBtn").onclick = () => api(`/api/jobs/${id}/cancel`, { method: "POST" }).then(() => toast("Stopping the check…"));
   const es = new EventSource(`/api/jobs/${id}/stream`);
   es.onmessage = (m) => {
     const { line } = JSON.parse(m.data);
@@ -394,6 +446,7 @@ async function jobView(id) {
     div.textContent = line; log.append(div);
     if (log.childElementCount > 2000) log.firstChild.remove();
     log.scrollTop = log.scrollHeight;
+    if (isUpdate) { if (/Updating MVT/.test(line)) advanceTo("mvt"); return; }
     if (!isScan) return;
     const mod = line.match(/mvt\.\w+\.modules\.(?:[\w]+\.)*?(\w+)\]/);
     if (/decrypt/i.test(line)) advanceTo("open", "Open the phone data");
@@ -402,7 +455,19 @@ async function jobView(id) {
   es.addEventListener("done", (m) => {
     es.close(); clearInterval(timer);
     const done = JSON.parse(m.data);
-    if (done.kind === "iocs") {
+    if (done.kind === "update") {
+      updateInfo = null;
+      if (done.status === "done") {
+        current = stages.length; drawStages(); $("#phase").textContent = "Update installed";
+        $(".pf-scan__ring").remove();
+        $(".pf-scan__text").textContent = "Restart PhoneForensics to start using the new version.";
+        const b = document.createElement("button"); b.className = "pf-btn pf-btn--primary pf-btn--lg"; b.textContent = "Restart now"; b.onclick = restartApp;
+        $(".pf-details").before(b);
+      } else {
+        $("#phase").textContent = "The update did not finish"; $(".pf-scan__ring").remove();
+        $(".pf-scan__text").textContent = done.error || "Something went wrong. Your current version still works.";
+      }
+    } else if (done.kind === "iocs") {
       loadStatus();
       toast(done.status === "done" ? "Spyware lists updated." : "Could not update the lists. Check your internet connection.");
       location.hash = "#/";
@@ -529,18 +594,103 @@ async function casesView() {
     <details class="pf-details"><summary>Where are results saved?</summary><p class="pf-muted">In <span class="pf-mono">${esc(status.cases_dir)}</span>. Delete a folder there to remove a check.</p></details>`;
 }
 
-function helpView() {
+const GUIDES = {
+  "iphone-mac": {
+    title: "iPhone backup on a Mac", icon: "phone",
+    intro: "You need the iPhone, its cable, and a Mac with enough free space for the backup (usually as much as the phone uses).",
+    steps: [
+      ["Unlock the iPhone and connect it", "Use the charging cable. If the phone asks <b>Trust This Computer?</b>, tap <b>Trust</b> and enter the phone's passcode."],
+      ["Open Finder", "Click the iPhone's name in the Finder sidebar, under <b>Locations</b>. Make sure the <b>General</b> tab is open."],
+      ["Choose \"Back up all of the data on your iPhone to this Mac\"", "Not iCloud. The backup has to be on this Mac."],
+      ["Tick \"Encrypt local backup\" and choose a password", "Write the password down. Encrypted backups include messages, browsing history and other things the check needs. If the box is already ticked, you need the password chosen back then."],
+      ["Click \"Back Up Now\" and wait", "Keep the phone connected until the progress bar in the sidebar disappears. It can take from a few minutes to an hour."],
+      ["Come back to PhoneForensics", "Start a new check. The backup is usually found automatically. If not, it is in <span class=\"pf-mono\">~/Library/Application Support/MobileSync/Backup/</span>."],
+    ],
+    trouble: [
+      ["PhoneForensics says the folder is not allowed", "macOS protects the backup folder. Open <b>System Settings › Privacy &amp; Security › Full Disk Access</b>, turn on <b>Terminal</b>, then close and reopen PhoneForensics."],
+      ["The iPhone does not appear in Finder", "Try another cable or USB port, unlock the phone, and check that macOS is up to date."],
+      ["I forgot the backup password", "Apple cannot recover it. On the iPhone, go to Settings › General › Transfer or Reset iPhone › Reset › <b>Reset All Settings</b>. This keeps your data but removes the backup password. Then make a new encrypted backup."],
+    ],
+  },
+  "iphone-windows": {
+    title: "iPhone backup on Windows", icon: "phone",
+    intro: "You need the iPhone, its cable, and a Windows PC with the free <b>Apple Devices</b> app (Windows 10 or 11) or <b>iTunes</b>, both from the Microsoft Store.",
+    steps: [
+      ["Install Apple Devices", "Get <b>Apple Devices</b> from the Microsoft Store. On older Windows, install <b>iTunes</b> instead."],
+      ["Unlock the iPhone and connect it", "If the phone asks <b>Trust This Computer?</b>, tap <b>Trust</b> and enter the passcode."],
+      ["Open the iPhone in Apple Devices", "Click the iPhone in the sidebar, then <b>General</b>. In iTunes, click the small phone button, then <b>Summary</b>."],
+      ["Choose \"Back up all of the data on your iPhone to this computer\"", "Not iCloud. The backup has to be on this PC."],
+      ["Tick \"Encrypt local backup\" and choose a password", "Write the password down. Encrypted backups include much more of what the check needs."],
+      ["Click \"Back Up Now\" and wait", "Keep the phone connected until it has finished."],
+      ["Come back to PhoneForensics", "The backup is usually found automatically. If not, look in <span class=\"pf-mono\">%APPDATA%\\Apple Computer\\MobileSync\\Backup</span> or <span class=\"pf-mono\">%USERPROFILE%\\Apple\\MobileSync\\Backup</span>."],
+    ],
+    trouble: [
+      ["The iPhone does not appear", "Unlock it, try another cable or port, and restart the Apple Devices app."],
+      ["I forgot the backup password", "On the iPhone, go to Settings › General › Transfer or Reset iPhone › Reset › <b>Reset All Settings</b>. This keeps your data but removes the backup password. Then make a new encrypted backup."],
+    ],
+  },
+  "android-qf": {
+    title: "Android data with AndroidQF", icon: "android",
+    intro: "AndroidQF is a free tool from Amnesty International that copies what the check needs from an Android phone. You need the phone, a USB cable that carries data, and this computer.",
+    steps: [
+      ["Turn on Developer options", "On the phone, open <b>Settings › About phone</b> and tap <b>Build number</b> 7 times. On some phones it is under <b>Software information</b>. Enter your PIN if asked."],
+      ["Turn on USB debugging", "Open <b>Settings › System › Developer options</b> (or search Settings for \"Developer\") and turn on <b>USB debugging</b>."],
+      ["Download AndroidQF", "From <a class=\"pf-link\" href=\"https://github.com/mvt-project/androidqf/releases\" target=\"_blank\" rel=\"noopener\">the AndroidQF releases page</a>, download the file for this computer: <b>windows</b> (.exe), <b>darwin</b> for Mac, or <b>linux</b>. Put it in its own folder."],
+      ["Connect the phone and allow debugging", "Unlock the phone and plug it in. When it asks <b>Allow USB debugging?</b>, tick <b>Always allow from this computer</b> and tap <b>Allow</b>."],
+      ["Run AndroidQF", "Double-click the file (on a Mac, right-click › Open the first time). Answer its questions. If unsure, choose the default. Keep the phone unlocked and connected while it works."],
+      ["Find the new folder", "When it finishes, there is a new folder (with a long name of letters and numbers) next to AndroidQF. Choose that folder in PhoneForensics."],
+      ["Turn USB debugging off again", "When you are done, switch <b>USB debugging</b> off in Developer options."],
+    ],
+    trouble: [
+      ["AndroidQF says no device was found", "Check the phone is unlocked, that you tapped <b>Allow</b>, and try a different cable. Some cables only charge."],
+      ["Windows or macOS blocks AndroidQF", "Windows: click <b>More info › Run anyway</b>. Mac: right-click the file and choose <b>Open</b>."],
+    ],
+  },
+  "android-bugreport": {
+    title: "Android bug report", icon: "bug",
+    intro: "A bug report is a quick option that needs no extra software. It contains less than AndroidQF, so use AndroidQF if you can.",
+    steps: [
+      ["Turn on Developer options", "Open <b>Settings › About phone</b> and tap <b>Build number</b> 7 times."],
+      ["Take a full bug report", "Open <b>Settings › System › Developer options</b>, tap <b>Take bug report</b>, choose <b>Full report</b>, then tap <b>Report</b>."],
+      ["Wait for the notification", "After a few minutes a notification says the bug report is ready. Tap it and choose how to share it."],
+      ["Copy it to this computer", "Send it to yourself or copy it with a cable. It is a <b>.zip</b> file. Do not unzip it."],
+      ["Choose the .zip in PhoneForensics", "Start a new check, choose <b>Android › Bug report</b>, and pick the file."],
+    ],
+    trouble: [
+      ["Sharing to email fails", "The file can be large. Copy it with a cable or upload it to a cloud drive you trust instead."],
+    ],
+  },
+};
+const GUIDE_FOR = { "ios-backup": ["iphone-mac", "iphone-windows"], "android-qf": ["android-qf"], "android-bugreport": ["android-bugreport"] };
+
+function helpView(which) {
+  const g = GUIDES[which];
+  if (g) {
+    view.innerHTML = `<div><a class="pf-page__back" href="#/help">← Guide</a><h1 class="pf-page__title">${esc(g.title)}</h1></div>
+      <p class="pf-body-lg">${g.intro}</p>
+      <ol class="pf-steps">${g.steps.map(([t, d]) => `<li class="pf-steps__item"><div><p class="pf-steps__title">${t}</p><p class="pf-steps__text">${d}</p></div></li>`).join("")}</ol>
+      <section class="pf-stack-sm"><h2 class="pf-section-title" style="margin:0">If something goes wrong</h2>
+        ${g.trouble.map(([q, a]) => `<details class="pf-card"><summary style="cursor:pointer;font-weight:700">${q}</summary><p class="pf-muted" style="margin-top:var(--space-3)">${a}</p></details>`).join("")}</section>
+      <div class="pf-row"><a class="pf-btn pf-btn--primary pf-btn--lg" href="#/scan">Start a new check ${icon("chev-r")}</a><button class="pf-btn" onclick="window.print()">${icon("print")}Print these steps</button></div>
+      ${footer()}`;
+    return;
+  }
   view.innerHTML = `<h1 class="pf-page__title">Guide</h1>
     <ol class="pf-steps">
-      <li class="pf-steps__item"><div><p class="pf-steps__title">Save the phone's data</p><p class="pf-steps__text">Make an iPhone backup, or collect Android data with AndroidQF. The new-check screens show you how.</p></div></li>
+      <li class="pf-steps__item"><div><p class="pf-steps__title">Save the phone's data</p><p class="pf-steps__text">Make an iPhone backup, or collect Android data with AndroidQF. Pick your phone below for step-by-step instructions.</p></div></li>
       <li class="pf-steps__item"><div><p class="pf-steps__title">We check it on this computer</p><p class="pf-steps__text">MVT reads messages, browsing history, apps and system logs, and compares them with lists of known spyware.</p></div></li>
       <li class="pf-steps__item"><div><p class="pf-steps__title">Read the result</p><p class="pf-steps__text">You get a clear answer and plain next steps, plus files you can give to an expert.</p></div></li>
     </ol>
+    <section><h2 class="pf-section-title">How to save data from the phone</h2>
+      <div class="pf-stack-sm">${Object.entries(GUIDES).map(([id, x]) => `
+        <a class="pf-check" href="#/help/${id}"><span class="pf-check__mark" style="background:var(--surface-sunken)">${icon(x.icon)}</span>
+          <span><p class="pf-check__name">${esc(x.title)}</p><p class="pf-check__meta">${x.steps.length} steps${id === "android-qf" ? " · Recommended for Android" : id.startsWith("iphone") ? " · Recommended for iPhone" : ""}</p></span>
+          <span></span><span class="pf-check__chev">${icon("chev-r")}</span></a>`).join("")}</div></section>
     <section class="pf-card pf-stack"><h2 class="pf-h2">Good to know</h2>
       <ul class="pf-bullets">
         <li><b>Private.</b> Everything happens on this computer. Phone data is never uploaded.</li>
         <li><b>Keep the lists up to date</b> from the Home screen. New spyware is found regularly.</li>
-        <li><b>iPhone:</b> encrypted backups contain much more. The password is only used here, to open the backup.</li>
+        <li><b>Keep the app up to date</b> with <b>Check for updates</b> on the Home screen.</li>
         <li><b>Nothing found is not a guarantee.</b> If you are at high risk, for example as a journalist, activist or lawyer, also talk to an expert.</li>
         <li><b>Consent.</b> Only check a phone when its owner freely agrees. This is a condition of the <a class="pf-link" href="https://license.mvt.re/1.1/" target="_blank" rel="noopener">MVT License</a>.</li>
       </ul></section>
