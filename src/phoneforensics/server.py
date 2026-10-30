@@ -312,12 +312,13 @@ def create_app(settings: Settings, registry: JobRegistry | None = None, restart_
     @app.post("/api/cases/<case_id>/open")
     def open_case_folder(case_id: str) -> Response:
         path = _case(case_id)
-        system = platform.system()
         try:
-            if system == "Windows":
-                os.startfile(path)  # type: ignore[attr-defined]  # noqa: S606 - Windows only
+            # sys.platform (not platform.system()) lets mypy check each branch for the right OS.
+            if sys.platform == "win32":
+                os.startfile(path)  # noqa: S606 - opens a folder this app created
             else:
-                subprocess.Popen(["open" if system == "Darwin" else "xdg-open", str(path)])  # noqa: S603
+                opener = "open" if sys.platform == "darwin" else "xdg-open"
+                subprocess.Popen([opener, str(path)])  # noqa: S603
         except OSError as exc:
             raise UserFacingError("Could not open the folder on this computer.", 500) from exc
         return jsonify({"ok": True})

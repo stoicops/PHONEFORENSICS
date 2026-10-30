@@ -43,5 +43,5 @@ build:            ## build the wheel and source distribution into dist/
 	$(PY) -m build
 
 lock:             ## refresh requirements*.lock after changing dependencies in pyproject.toml
-	uv pip compile --universal pyproject.toml -o requirements.lock
-	uv pip compile --universal pyproject.toml --extra dev -o requirements-dev.lock
+	uv pip compile --universal --python-version 3.10 pyproject.toml -o requirements.lock
+	uv pip compile --universal --python-version 3.10 pyproject.toml --extra dev -o requirements-dev.lock
