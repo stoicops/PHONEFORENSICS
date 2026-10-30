@@ -31,7 +31,7 @@ def test_android_qf_is_non_interactive_and_takes_password() -> None:
         "mvt-android",
         "check-androidqf",
         "--output",
-        "/out",
+        str(OUT),
         "--iocs",
         "/i.stix2",
         "--non-interactive",
