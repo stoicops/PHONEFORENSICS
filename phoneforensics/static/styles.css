@@ -96,3 +96,4 @@ td code{word-break:break-all;color:#c4b5fd}
 .warn-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:14px 16px;margin:14px 0}
 @media (max-width:860px){body{flex-direction:column;overflow:auto}.sidebar{width:auto;flex-direction:row;align-items:center;padding:12px}nav{flex-direction:row}nav a span,.side-foot,.brand div{display:none}main{padding:20px 16px;overflow:visible}.g2,.g3,.g4{grid-template-columns:1fr}.hero-shield{display:none}}
 @media print{body{background:#fff;color:#000;overflow:visible;display:block}.sidebar,.bg-glow,.btn,.tabs,#toast{display:none!important}main{padding:0;overflow:visible}.card,.verdict{border:1px solid #ccc;background:none!important}.muted,th{color:#555}td code{color:#000}}
+.consent{display:flex;gap:12px;align-items:flex-start;margin-top:16px;cursor:pointer}.consent input{margin-top:4px;width:18px;height:18px;flex:none}

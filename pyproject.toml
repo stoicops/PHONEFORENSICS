@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,6 +8,8 @@ version = "0.1.0"
 description = "A friendly point-and-click front end for the Mobile Verification Toolkit (MVT)"
 readme = "README.md"
 authors = [{ name = "Surinder Lall" }]
+license = "MIT"
+license-files = ["LICENSE", "NOTICE.md"]
 requires-python = ">=3.10"
 dependencies = ["mvt", "flask>=2.3"]
 

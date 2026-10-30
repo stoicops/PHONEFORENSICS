@@ -380,6 +380,8 @@ def scan():
     fast = bool(body.get("fast"))
     extra_iocs = [p for p in body.get("iocs", []) if p]
 
+    if not body.get("consent"):
+        return jsonify({"error": "Please confirm the phone owner has agreed to this check."}), 400
     if scan_type not in SCAN_TYPES:
         return jsonify({"error": "Unknown scan type."}), 400
     if not target or not Path(target).exists():

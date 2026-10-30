@@ -57,11 +57,24 @@ streams their output to the browser (Server-Sent Events), and summarises MVT's `
 JSON files and alert timeline into a readable report. The interface is plain HTML/CSS/JS in
 `phoneforensics/static/` — no build step.
 
+## Acceptable use and consent
+
+PhoneForensics is for people checking **their own phone**, or a phone whose owner has given free,
+informed consent: for example, a digital-security helper working with a journalist. It is
+not for monitoring partners, employees or anyone else without their agreement. The app asks
+you to confirm consent before every check. This is a condition of the MVT License, which governs
+any use of this software to analyse a device.
+
+## License
+
+PhoneForensics is © 2026 Surinder Lall and released under the [MIT License](LICENSE).
+It uses MVT, which is installed separately and licensed under the
+[MVT License 1.1](https://license.mvt.re/1.1/). See [NOTICE.md](NOTICE.md) for details and
+third-party notices. PhoneForensics is not affiliated with or endorsed by Amnesty International.
+
 ## Important
 
 A clean result is not a guarantee that a phone is safe: MVT can only recognise spyware for which public
 indicators exist. If you are at risk, contact [Access Now's Digital Security Helpline](https://www.accessnow.org/help/)
 or [Amnesty International's Security Lab](https://securitylab.amnesty.org/get-help/).
 
-MVT is developed by Amnesty International and released under its own [MVT License](https://github.com/mvt-project/mvt/blob/main/LICENSE);
-please review its terms before redistributing.

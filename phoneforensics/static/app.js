@@ -162,8 +162,9 @@ function stepConfirm() {
       <tr><th>Threat lists</th><td>${status.iocs.count ? `${status.iocs.count} lists loaded <span class="pill ok">ready</span>` : `<span class="pill warn">none downloaded</span> — results won't flag known spyware`}</td></tr></table>
     ${wiz.device === "iphone" ? `<label class="toggle"><input type="checkbox" id="fastIn" ${wiz.fast ? "checked" : ""}> Quick mode (skip slow checks)</label>` : ""}
   </div>
+  <label class="consent card"><input type="checkbox" id="consentIn"> <span><b>The owner of this phone has agreed to this check.</b><br><span class="muted">They know what will be analysed and how the results will be stored. Checking someone else's phone without their free and informed consent is not allowed by the <a href="https://license.mvt.re/1.1/" target="_blank">MVT License</a> and may be illegal.</span></span></label>
   <p class="muted">🔒 Everything runs on this computer. Nothing from the phone is uploaded anywhere.</p>
-  <div class="actions"><button class="btn ghost" data-back>← Back</button><button class="btn primary lg" id="runBtn">🔍 Start check</button></div>`;
+  <div class="actions"><button class="btn ghost" data-back>← Back</button><button class="btn primary lg" id="runBtn" disabled>🔍 Start check</button></div>`;
 }
 
 function bindWizard() {
@@ -184,6 +185,7 @@ function bindWizard() {
   }
   if ($("#found")) findBackups();
   $("#runBtn")?.addEventListener("click", startScan);
+  $("#consentIn")?.addEventListener("change", (e) => ($("#runBtn").disabled = !e.target.checked));
 }
 
 function showBackupInfo(info) {
@@ -213,7 +215,7 @@ async function startScan() {
   wiz.label = $("#labelIn").value.trim();
   wiz.fast = $("#fastIn")?.checked || false;
   try {
-    const job = await api("/api/scan", { method: "POST", body: JSON.stringify({ type: wiz.ev.type, path: wiz.path, password: wiz.password, label: wiz.label, fast: wiz.fast }) });
+    const job = await api("/api/scan", { method: "POST", body: JSON.stringify({ type: wiz.ev.type, path: wiz.path, password: wiz.password, label: wiz.label, fast: wiz.fast, consent: $("#consentIn").checked }) });
     wiz.password = "";
     location.hash = `#/job/${job.id}`;
   } catch (e) { toast(e.message); }
@@ -387,8 +389,10 @@ function helpView() {
     <li><b>Keep indicators up to date</b> from the Home screen — new spyware is discovered regularly.</li>
     <li><b>iPhone users:</b> encrypted backups contain much more evidence. The password is only used locally to unlock the backup.</li>
     <li><b>A clean result is not a guarantee.</b> If you are at high risk (journalist, activist, lawyer), also contact a specialist.</li>
+    <li><b>Consent:</b> only check a phone with the owner's free and informed consent. This is a condition of the <a href="https://license.mvt.re/1.1/" target="_blank">MVT License</a>.</li>
     <li>Need help? <a href="https://www.accessnow.org/help/" target="_blank">Access Now Helpline</a> · <a href="https://securitylab.amnesty.org/get-help/" target="_blank">Amnesty Security Lab</a> · <a href="https://docs.mvt.re" target="_blank">MVT documentation</a></li>
-  </ul></div></div>`;
+  </ul></div>
+  <p class="muted" style="margin-top:18px">PhoneForensics by Surinder Lall · MIT License · Built on <a href="https://github.com/mvt-project/mvt" target="_blank">MVT</a> by Amnesty International (MVT License 1.1). Not affiliated with or endorsed by Amnesty International.</p></div>`;
 }
 
 loadStatus().then(route).catch((e) => { view.innerHTML = `<div class="wrap warn-box">Couldn't reach PhoneForensics: ${esc(e.message)}</div>`; });
