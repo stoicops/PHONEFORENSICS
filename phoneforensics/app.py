@@ -27,7 +27,7 @@ DATA_DIR = Path(os.environ.get("PHONEFORENSICS_HOME", Path.home() / "PhoneForens
 CASES_DIR = DATA_DIR / "cases"
 
 # Shown as "Buy me a coffee" in the app bar when set.
-SUPPORT_URL = ""
+SUPPORT_URL = "https://buymeacoffee.com/surinder"
 
 app = Flask(__name__, static_folder=None)
 jobs = {}

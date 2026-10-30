@@ -54,7 +54,7 @@ Results are saved to `~/PhoneForensics/cases/` (override with the `PHONEFORENSIC
 
 The interface follows the design system in `design/tokens.json` (mirrored in `phoneforensics/static/tokens.css` and `components.css`): Atkinson Hyperlegible type, large controls, light and dark themes that follow the operating system, and calm amber rather than alarm red for findings.
 
-To show a "Buy me a coffee" link in the app bar, set `SUPPORT_URL` in `phoneforensics/app.py` or the `PHONEFORENSICS_SUPPORT_URL` environment variable.
+If PhoneForensics helps you, you can support it at [buymeacoffee.com/surinder](https://buymeacoffee.com/surinder). Forks can change or remove the app-bar link with `SUPPORT_URL` in `phoneforensics/app.py` or the `PHONEFORENSICS_SUPPORT_URL` environment variable.
 
 ## How it works
 
