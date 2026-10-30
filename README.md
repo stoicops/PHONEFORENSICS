@@ -2,6 +2,8 @@
 
 **A point-and-click app for checking phones for spyware — no command line required.**
 
+Created by **Surinder Lall**.
+
 PhoneForensics wraps Amnesty International's [Mobile Verification Toolkit (MVT)](https://github.com/mvt-project/mvt)
 in a friendly, guided interface so that non-technical people can check an iPhone or Android phone for traces
 of known spyware such as Pegasus and Predator.
